@@ -1,0 +1,141 @@
+build:
+  generated-by: csolution version 2.0.0
+  solution: Project.csolution.yaml
+  project: Project.cproject.yaml
+  context: Project+Target
+  compiler: AC6
+  device: PY32F002Ax5
+  processor:
+    fpu: off
+    endian: little
+    trustzone: non-secure
+  packs:
+    - pack: ARM::CMSIS@5.9.0
+      path: ${CMSIS_PACK_ROOT}/ARM/CMSIS/5.9.0
+    - pack: Puya::PY32F0xx_DFP@1.1.0
+      path: ${CMSIS_PACK_ROOT}/Puya/PY32F0xx_DFP/1.1.0
+  optimize: none
+  debug: on
+  misc:
+    C:
+      - -fno-rtti
+      - -funsigned-char
+      - -fshort-enums
+      - -fshort-wchar
+      - -ffunction-sections
+      - -std=c99
+      - -Wno-packed
+      - -Wno-missing-variable-declarations
+      - -Wno-missing-prototypes
+      - -Wno-missing-noreturn
+      - -Wno-sign-conversion
+      - -Wno-nonportable-include-path
+      - -Wno-reserved-id-macro
+      - -Wno-unused-macros
+      - -Wno-documentation-unknown-command
+      - -Wno-documentation
+      - -Wno-license-management
+      - -Wno-parentheses-equality
+    CPP:
+      - -fno-rtti
+      - -funsigned-char
+      - -fshort-enums
+      - -fshort-wchar
+      - -ffunction-sections
+      - -std=c99
+      - -Wno-packed
+      - -Wno-missing-variable-declarations
+      - -Wno-missing-prototypes
+      - -Wno-missing-noreturn
+      - -Wno-sign-conversion
+      - -Wno-nonportable-include-path
+      - -Wno-reserved-id-macro
+      - -Wno-unused-macros
+      - -Wno-documentation-unknown-command
+      - -Wno-documentation
+      - -Wno-license-management
+      - -Wno-parentheses-equality
+    Link:
+      - --library_type=microlib
+      - --map
+      - --load_addr_map_info
+      - --xref
+      - --callgraph
+      - --symbols
+      - --info sizes
+      - --info totals
+      - --info unused
+      - --info veneers
+      - --list
+      - --strict
+      - --summary_stderr
+      - --info summarysizes
+  define:
+    - PY32F002Ax5
+    - USE_FULL_LL_DRIVER
+    - __MICROLIB
+    - _RTE_
+  add-path:
+    - ../Inc
+    - ../../../../../../Drivers/BSP/PY32F002xx_Start_Kit
+    - ../../../../../../Drivers/CMSIS/Include
+    - ../../../../../../Drivers/CMSIS/Device/PY32F0xx/Include
+    - ../../../../../../Drivers/PY32F0xx_HAL_Driver/Inc
+    - RTE/_Target
+    - ${CMSIS_PACK_ROOT}/ARM/CMSIS/5.9.0/CMSIS/Core/Include
+    - ${CMSIS_PACK_ROOT}/Puya/PY32F0xx_DFP/1.1.0/Device/Include
+  output-dirs:
+    intdir: tmp/Project/Target
+    outdir: out/Project/Target
+    rtedir: RTE
+  output:
+    - type: elf
+      file: Project.axf
+  components:
+    - component: ARM::CMSIS:CORE@5.6.0
+      condition: ARMv6_7_8-M Device
+      from-pack: ARM::CMSIS@5.9.0
+      selected-by: ARM::CMSIS:CORE
+  linker:
+    script: Project_Target.sct
+  groups:
+    - group: Common
+      files:
+        - file: ../Src/system_py32f0xx.c
+          category: sourceC
+        - file: startup_py32f002xx.s
+          category: sourceAsm
+          misc:
+            ASM:
+              - -masm=auto
+    - group: Application/User
+      files:
+        - file: ../Src/main.c
+          category: sourceC
+        - file: ../Src/py32f0xx_it.c
+          category: sourceC
+        - file: ../Inc/SEGGER_RTT_printf.c
+          category: sourceC
+        - file: ../Inc/SEGGER_RTT.c
+          category: sourceC
+    - group: BSP/py32f002xx_Start_Kit
+      files:
+        - file: ../../../../../../Drivers/BSP/PY32F002xx_Start_Kit/py32f002xx_ll_Start_Kit.c
+          category: sourceC
+    - group: Drivers/PY32F0xx_HAL_Driver
+      files:
+        - file: ../../../../../../Drivers/PY32F0xx_HAL_Driver/Src/py32f0xx_ll_utils.c
+          category: sourceC
+        - file: ../../../../../../Drivers/PY32F0xx_HAL_Driver/Src/py32f0xx_ll_gpio.c
+          category: sourceC
+        - file: ../../../../../../Drivers/PY32F0xx_HAL_Driver/Src/py32f0xx_ll_i2c.c
+          category: sourceC
+        - file: ../../../../../../Drivers/PY32F0xx_HAL_Driver/Src/py32f0xx_ll_rcc.c
+          category: sourceC
+    - group: Doc
+      files:
+        - file: ../readme.txt
+          category: doc
+  constructed-files:
+    - file: RTE/_Target/RTE_Components.h
+      category: header

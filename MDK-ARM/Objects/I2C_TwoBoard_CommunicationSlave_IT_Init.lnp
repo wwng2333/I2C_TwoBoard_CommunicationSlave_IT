@@ -1,0 +1,16 @@
+--cpu Cortex-M0+
+".\objects\system_py32f0xx.o"
+".\objects\startup_py32f002xx.o"
+".\objects\main.o"
+".\objects\py32f0xx_it.o"
+".\objects\segger_rtt_printf.o"
+".\objects\segger_rtt.o"
+".\objects\py32f002xx_ll_start_kit.o"
+".\objects\py32f0xx_ll_utils.o"
+".\objects\py32f0xx_ll_gpio.o"
+".\objects\py32f0xx_ll_i2c.o"
+".\objects\py32f0xx_ll_rcc.o"
+--library_type=microlib --strict --scatter ".\Objects\I2C_TwoBoard_CommunicationSlave_IT_Init.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list ".\Listings\I2C_TwoBoard_CommunicationSlave_IT_Init.map" -o .\Objects\I2C_TwoBoard_CommunicationSlave_IT_Init.axf

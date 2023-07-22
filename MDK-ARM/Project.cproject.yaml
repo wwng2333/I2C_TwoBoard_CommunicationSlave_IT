@@ -1,0 +1,31 @@
+project:
+  linker:
+    - script: Project_Target.sct
+  groups:
+    - group: Common
+      files:
+        - file: ../Src/system_py32f0xx.c
+        - file: startup_py32f002xx.s
+          misc:
+            - ASM:
+                - -masm=auto
+    - group: Application/User
+      files:
+        - file: ../Src/main.c
+        - file: ../Src/py32f0xx_it.c
+        - file: ../Inc/SEGGER_RTT_printf.c
+        - file: ../Inc/SEGGER_RTT.c
+    - group: BSP/py32f002xx_Start_Kit
+      files:
+        - file: ../../../../../../Drivers/BSP/PY32F002xx_Start_Kit/py32f002xx_ll_Start_Kit.c
+    - group: Drivers/PY32F0xx_HAL_Driver
+      files:
+        - file: ../../../../../../Drivers/PY32F0xx_HAL_Driver/Src/py32f0xx_ll_utils.c
+        - file: ../../../../../../Drivers/PY32F0xx_HAL_Driver/Src/py32f0xx_ll_gpio.c
+        - file: ../../../../../../Drivers/PY32F0xx_HAL_Driver/Src/py32f0xx_ll_i2c.c
+        - file: ../../../../../../Drivers/PY32F0xx_HAL_Driver/Src/py32f0xx_ll_rcc.c
+    - group: Doc
+      files:
+        - file: ../readme.txt
+  components:
+    - component: ARM::CMSIS:CORE

@@ -1,0 +1,4 @@
+CompileFlags:
+  CompilationDatabase: >-
+    c:\Users\ander\Downloads\PYMCU_20221117\Library and
+    Examples\PY32F0xx_Firmware_V1.1.2\Projects\PY32F002A-STK\Example_LL\I2C\I2C_TwoBoard_CommunicationSlave_IT_Init\MDK-ARM\tmp\Project\Target

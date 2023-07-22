@@ -1,0 +1,13 @@
+# CMSIS Build Audit File generated on 2023-07-16T11:11:50
+
+# Project Description File: c:/Users/ander/Downloads/PYMCU_20221117/Library and Examples/PY32F0xx_Firmware_V1.1.2/Projects/PY32F002A-STK/Example_LL/I2C/I2C_TwoBoard_CommunicationSlave_IT_Init/MDK-ARM/Project+Target.cprj
+
+# Toolchain Configuration File: C:/cadence166/Cadence/SPB_Data/.vcpkg/artifacts/fd3d78d7/tools.open.cmsis.pack.cmsis.toolbox/2.0.0/etc/AC6.6.18.0.cmake
+
+# Package: ARM.CMSIS.5.9.0
+  Location: C:\Users\ander\AppData\Local\arm\packs/ARM/CMSIS/5.9.0/
+
+  * Component: ARM::CMSIS.CORE:5.6.0
+
+# Package: Puya.PY32F0xx_DFP.1.1.0
+  Location: C:\Users\ander\AppData\Local\arm\packs/Puya/PY32F0xx_DFP/1.1.0/

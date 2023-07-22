@@ -1,0 +1,37 @@
+Detecting C compiler ABI info failed to compile with the following output:
+Change Dir: C:/Users/ander/Downloads/PYMCU_20221117/Library and Examples/PY32F0xx_Firmware_V1.1.2/Projects/PY32F002A-STK/Example_LL/I2C/I2C_TwoBoard_CommunicationSlave_IT_Init/MDK-ARM/tmp/Project/Target/CMakeFiles/CMakeScratch/TryCompile-rjxm7n
+
+Run Build Command(s):C:/cadence166/Cadence/SPB_Data/.vcpkg/artifacts/vcpkg-ce-default/tools.ninja.build.ninja/1.10.2/ninja.exe cmTC_1bca7 && [1/2] Building C object CMakeFiles/cmTC_1bca7.dir/CMakeCCompilerABI.o
+Product: Keil MDK Community
+Component: Arm Compiler for Embedded 6.20
+Tool: armclang [5e9ad700]
+
+Target: arm-arm-none-eabi
+ (in-process)
+ "c:\\cadence166\\Cadence\\SPB_Data\\.vcpkg\\artifacts\\fd3d78d7\\compilers.arm.armclang\\6.20.0\\bin\\armclang.exe" -cc1 -triple thumbv6m-arm-none-eabi -emit-obj -mrelax-all -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCCompilerABI.c -mrelocation-model static -mframe-pointer=none -menable-no-infs -menable-no-nans -fmath-errno -fno-signed-zeros -fdenormal-fp-math=preserve-sign,preserve-sign -ffp-contract=on -fno-rounding-math -ffinite-math-only -mconstructor-aliases -target-cpu cortex-m0plus -target-feature +soft-float-abi -target-feature -crc -target-feature -dsp -target-feature -mve -target-feature -ras -target-feature -sb -target-feature -i8mm -target-feature -lob -target-feature -cdecp0 -target-feature -cdecp1 -target-feature -cdecp2 -target-feature -cdecp3 -target-feature -cdecp4 -target-feature -cdecp5 -target-feature -cdecp6 -target-feature -cdecp7 -target-feature -pacbti -target-feature -fce -target-feature -hwdiv-arm -target-feature -hwdiv -target-feature -vfp2 -target-feature -vfp2sp -target-feature -vfp3 -target-feature -vfp3d16 -target-feature -vfp3d16sp -target-feature -vfp3sp -target-feature -fp16 -target-feature -vfp4 -target-feature -vfp4d16 -target-feature -vfp4d16sp -target-feature -vfp4sp -target-feature -fp-armv8 -target-feature -fp-armv8d16 -target-feature -fp-armv8d16sp -target-feature -fp-armv8sp -target-feature -fullfp16 -target-feature -fp64 -target-feature -d32 -target-feature -neon -target-feature -dotprod -target-feature -fp16fml -target-feature -bf16 -target-feature -mve.fp -target-feature -fpregs -target-feature -crypto -target-feature -sha2 -target-feature -aes -target-feature +strict-align -target-abi aapcs -mfloat-abi soft -Wunaligned-access -mllvm -treat-scalable-fixed-error-as-warning -debugger-tuning=gdb -fforce-dwarf-frame -v -ffunction-sections -fdata-sections "-fcoverage-compilation-dir=C:\\Users\\ander\\Downloads\\PYMCU_20221117\\Library and Examples\\PY32F0xx_Firmware_V1.1.2\\Projects\\PY32F002A-STK\\Example_LL\\I2C\\I2C_TwoBoard_CommunicationSlave_IT_Init\\MDK-ARM\\tmp\\Project\\Target\\CMakeFiles\\CMakeScratch\\TryCompile-rjxm7n" -resource-dir "c:\\cadence166\\Cadence\\SPB_Data\\.vcpkg\\artifacts\\fd3d78d7\\compilers.arm.armclang\\6.20.0\\lib\\clang\\17" -dependency-file "CMakeFiles\\cmTC_1bca7.dir\\CMakeCCompilerABI.o.d" -MT CMakeFiles/cmTC_1bca7.dir/CMakeCCompilerABI.o -sys-header-deps -internal-isystem "c:\\cadence166\\Cadence\\SPB_Data\\.vcpkg\\artifacts\\fd3d78d7\\compilers.arm.armclang\\6.20.0\\bin\\..\\include" -nobuiltininc "-fdebug-compilation-dir=C:\\Users\\ander\\Downloads\\PYMCU_20221117\\Library and Examples\\PY32F0xx_Firmware_V1.1.2\\Projects\\PY32F002A-STK\\Example_LL\\I2C\\I2C_TwoBoard_CommunicationSlave_IT_Init\\MDK-ARM\\tmp\\Project\\Target\\CMakeFiles\\CMakeScratch\\TryCompile-rjxm7n" -ferror-limit 19 -fvisibility=hidden -fno-signed-char -fgnuc-version=4.2.1 -fsuppress-licensing -aggressive-jump-threading -o CMakeFiles/cmTC_1bca7.dir/CMakeCCompilerABI.o -x c C:/cadence166/Cadence/SPB_Data/.vcpkg/artifacts/vcpkg-ce-default/tools.kitware.cmake/3.25.2/share/cmake-3.25/Modules/CMakeCCompilerABI.c
+Arm Compiler for Embedded 6.20 -cc1 default target aarch64-arm-none-eabi
+#include "..." search starts here:
+#include <...> search starts here:
+ c:\cadence166\Cadence\SPB_Data\.vcpkg\artifacts\fd3d78d7\compilers.arm.armclang\6.20.0\bin\..\include
+End of search list.
+[2/2] Linking C static library libcmTC_1bca7.a
+FAILED: libcmTC_1bca7.a 
+cmd.exe /C "cd . && C:\cadence166\Cadence\SPB_Data\.vcpkg\artifacts\fd3d78d7\compilers.arm.armclang\6.20.0\bin\armar.exe --create -cr libcmTC_1bca7.a  CMakeFiles/cmTC_1bca7.dir/CMakeCCompilerABI.o && cd ."
+Error: L6833E: File 'CMakeFiles/cmTC_1bca7.dir/CMakeCCompilerABI.o' does not exist
+ninja: build stopped: subcommand failed.
+
+
+
+
+Determining if the C compiler works failed with the following output:
+Change Dir: C:/Users/ander/Downloads/PYMCU_20221117/Library and Examples/PY32F0xx_Firmware_V1.1.2/Projects/PY32F002A-STK/Example_LL/I2C/I2C_TwoBoard_CommunicationSlave_IT_Init/MDK-ARM/tmp/Project/Target/CMakeFiles/CMakeScratch/TryCompile-mdqodp
+
+Run Build Command(s):C:/cadence166/Cadence/SPB_Data/.vcpkg/artifacts/vcpkg-ce-default/tools.ninja.build.ninja/1.10.2/ninja.exe cmTC_addfa && [1/2] Building C object CMakeFiles/cmTC_addfa.dir/testCCompiler.o
+[2/2] Linking C static library libcmTC_addfa.a
+FAILED: libcmTC_addfa.a 
+cmd.exe /C "cd . && C:\cadence166\Cadence\SPB_Data\.vcpkg\artifacts\fd3d78d7\compilers.arm.armclang\6.20.0\bin\armar.exe --create -cr libcmTC_addfa.a  CMakeFiles/cmTC_addfa.dir/testCCompiler.o && cd ."
+Error: L6833E: File 'CMakeFiles/cmTC_addfa.dir/testCCompiler.o' does not exist
+ninja: build stopped: subcommand failed.
+
+
+
