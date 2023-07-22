@@ -30,7 +30,7 @@
 #define I2C_STATE_BUSY_TX 1   /* 发送状态 */
 #define I2C_STATE_BUSY_RX 2   /* 接收状态 */
 // ADC
-uint16_t ADC_Result[4];
+uint8_t ADC_Result[8] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
 uint8_t ADC_Count = 0;
 
 /* Private variables ---------------------------------------------------------*/
@@ -38,6 +38,7 @@ uint8_t aTxBuffer[15] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0
 uint8_t aRxBuffer[100] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 __IO uint8_t counter = 0;
 __IO uint8_t test = 0x00, rcv_counter = 0;
+__IO uint8_t aADCRefresh = 0;
 
 uint8_t *pBuffPtr = NULL;
 __IO uint16_t XferCount = 0;
@@ -79,7 +80,7 @@ int main(void)
 
   /* 配置I2C */
   APP_ConfigI2cSlave();
-  
+
   LL_ADC_REG_StartConversion(ADC1);
   //  /* 从机发送数据 */
   APP_SlaveTransmit_IT((uint8_t *)aTxBuffer, sizeof(aTxBuffer));
@@ -89,6 +90,11 @@ int main(void)
   // APP_SlaveReceive_IT((uint8_t *)aRxBuffer, sizeof(aRxBuffer));
   while (1)
   {
+    if (aADCRefresh)
+    {
+      LL_ADC_REG_StartConversion(ADC1);
+      aADCRefresh = 0;
+    }
     //  APP_SlaveReceive_IT((uint8_t *)aRxBuffer, sizeof(aRxBuffer));
     //
     //  /* 等待从机接收数据完成 */
@@ -98,11 +104,23 @@ int main(void)
 
 void APP_AdcGrpRegularUnitaryConvCompleteCallback()
 {
-  if (ADC_Count == 4)
-    ADC_Count = 0;
-  /* 获取ADC转换数据 */
-  ADC_Result[ADC_Count] = LL_ADC_REG_ReadConversionData12(ADC1);
-  ADC_Count++;
+  uint16_t temp = 0;
+	int32_t tmp = 0;
+  if (ADC_Count == 8)
+	{
+		ADC_Count = 0;
+	}
+	else if(ADC_Count == 4)
+	{
+		tmp = __LL_ADC_CALC_TEMPERATURE(((uint32_t)3000), LL_ADC_REG_ReadConversionData12(ADC1), LL_ADC_RESOLUTION_12B);
+		tmp *= 100;
+		temp = (uint16_t)tmp;
+	} else {
+		temp = LL_ADC_REG_ReadConversionData12(ADC1);
+	}
+  ADC_Result[ADC_Count] = temp;
+  ADC_Result[ADC_Count + 1] = temp >> 8;
+  ADC_Count += 2;
 }
 
 /**
@@ -400,9 +418,9 @@ void APP_SlaveIRQCallback(void)
   {
     if (XferCount != 0)
     {
-      LL_I2C_TransmitData8(I2C1, aTxBuffer[test]);
-      if (test++ == 0x02)
-        test = 0x00;
+      // LL_I2C_TransmitData8(I2C1, 0x68);
+      LL_I2C_TransmitData8(I2C1, ADC_Result[test]);
+      test++;
     }
   }
   /* BTF标志位置位 */
@@ -411,7 +429,7 @@ void APP_SlaveIRQCallback(void)
     if (XferCount != 0)
     {
       LL_I2C_TransmitData8(I2C1, 0x66);
-      XferCount;
+      XferCount--;
     }
   }
   /* 从机接收 */
@@ -422,11 +440,29 @@ void APP_SlaveIRQCallback(void)
     {
       if (XferCount != 0U)
       {
-        aRxBuffer[rcv_counter++] = LL_I2C_ReceiveData8(I2C1);
-        if (rcv_counter >= 2)
+        aRxBuffer[0] = LL_I2C_ReceiveData8(I2C1);
+        switch (aRxBuffer[0])
         {
-          rcv_counter = 0;
+        case 0: // BAT, CH1
+          test = 0;
+          break;
+        case 1: // Vin, CH6
+          test = 2;
+          break;
+        case 2: // Temp, CH11
+          test = 4;
+          aADCRefresh = 1;
+          break;
+        case 3: // Vref, CH12
+          test = 6;
+          break;
+        default:
+          test = 0xFF;
         }
+        //        if (rcv_counter >= 2)
+        //        {
+        //          rcv_counter = 0;
+        //        }
       }
     }
     /* BTF标志位置位 */
