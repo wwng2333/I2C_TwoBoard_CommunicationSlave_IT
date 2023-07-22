@@ -93,6 +93,18 @@ void I2C1_IRQHandler(void)
   //APP_SlaveIRQCallback_NACK();
 }
 
+void ADC_COMP_IRQHandler(void)
+{
+  /* 检测是不是转换结束触发的中断 */
+  if(LL_ADC_IsActiveFlag_EOC(ADC1) != 0)
+  {
+    /* 清空ADC EOC 中断 */
+    LL_ADC_ClearFlag_EOC(ADC1);
+
+    /* 调用中断处理函数 */
+    APP_AdcGrpRegularUnitaryConvCompleteCallback();
+  }
+}
 
 
 /************************ (C) COPYRIGHT Puya *****END OF FILE****/

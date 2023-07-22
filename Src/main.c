@@ -29,6 +29,9 @@
 #define I2C_STATE_READY 0     /* 就绪状态 */
 #define I2C_STATE_BUSY_TX 1   /* 发送状态 */
 #define I2C_STATE_BUSY_RX 2   /* 接收状态 */
+// ADC
+uint16_t ADC_Result[4];
+uint8_t ADC_Count = 0;
 
 /* Private variables ---------------------------------------------------------*/
 uint8_t aTxBuffer[15] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff};
@@ -44,6 +47,11 @@ void APP_SystemClockConfig(void);
 static void APP_ConfigI2cSlave(void);
 static void APP_SlaveTransmit_IT(uint8_t *pData, uint16_t Size);
 static void APP_SlaveReceive_IT(uint8_t *pData, uint16_t Size);
+
+static void APP_AdcConfig(void);
+static void APP_AdcEnable(void);
+static void APP_AdcCalibrate(void);
+
 /**
  * @brief  应用程序入口函数.
  * @param  无
@@ -54,15 +62,31 @@ int main(void)
   /* 配置系统时钟 */
   APP_SystemClockConfig();
 
+  /*ADC复位*/
+  LL_ADC_Reset(ADC1);
+
+  /* ADC模块时钟使能 */
+  LL_APB1_GRP2_EnableClock(LL_APB1_GRP2_PERIPH_ADC1);
+
+  /* ADC校准 */
+  APP_AdcCalibrate();
+
+  /* 配置ADC相关参数 */
+  APP_AdcConfig();
+
+  /* ADC使能 */
+  APP_AdcEnable();
+
   /* 配置I2C */
   APP_ConfigI2cSlave();
-
+  
+  LL_ADC_REG_StartConversion(ADC1);
   //  /* 从机发送数据 */
   APP_SlaveTransmit_IT((uint8_t *)aTxBuffer, sizeof(aTxBuffer));
   //
   //  /* 等待从机发送数据完成 */
   //  while (State != I2C_STATE_READY);
-  //APP_SlaveReceive_IT((uint8_t *)aRxBuffer, sizeof(aRxBuffer));
+  // APP_SlaveReceive_IT((uint8_t *)aRxBuffer, sizeof(aRxBuffer));
   while (1)
   {
     //  APP_SlaveReceive_IT((uint8_t *)aRxBuffer, sizeof(aRxBuffer));
@@ -70,6 +94,116 @@ int main(void)
     //  /* 等待从机接收数据完成 */
     //  APP_SlaveTransmit_IT((uint8_t *)aTxBuffer, sizeof(aTxBuffer));
   }
+}
+
+void APP_AdcGrpRegularUnitaryConvCompleteCallback()
+{
+  if (ADC_Count == 4)
+    ADC_Count = 0;
+  /* 获取ADC转换数据 */
+  ADC_Result[ADC_Count] = LL_ADC_REG_ReadConversionData12(ADC1);
+  ADC_Count++;
+}
+
+/**
+ * @brief  ADC配置函数.
+ * @param  无
+ * @retval 无
+ */
+static void APP_AdcConfig(void)
+{
+
+  __IO uint32_t wait_loop_index = 0;
+
+  LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOA);
+  LL_GPIO_SetPinMode(GPIOA, LL_GPIO_PIN_1 | LL_GPIO_PIN_6, LL_GPIO_MODE_ANALOG);
+
+  LL_ADC_InitTypeDef ADC_Init;
+  LL_ADC_REG_InitTypeDef LL_ADC_REG_InitType;
+  ADC_Common_TypeDef ADC_Common_Type;
+
+  /*ADC通道和时钟源需在ADEN=0时配置，其余的需在ADSTART=0时配置*/
+  /*ADC部分功能初始化*/
+  ADC_Init.Clock = LL_ADC_CLOCK_SYNC_PCLK_DIV2;
+  ADC_Init.DataAlignment = LL_ADC_DATA_ALIGN_RIGHT;
+  ADC_Init.LowPowerMode = LL_ADC_LP_MODE_NONE;
+  ADC_Init.Resolution = LL_ADC_RESOLUTION_12B;
+  LL_ADC_Init(ADC1, &ADC_Init);
+  /* 设置通道转换时间 */
+  LL_ADC_SetSamplingTimeCommonChannels(ADC1, LL_ADC_SAMPLINGTIME_239CYCLES_5);
+
+  /* ADC结构功能初始化 */
+  LL_ADC_REG_InitType.ContinuousMode = LL_ADC_REG_CONV_SINGLE;
+  LL_ADC_REG_InitType.Overrun = LL_ADC_REG_OVR_DATA_PRESERVED;
+  LL_ADC_REG_InitType.SequencerDiscont = LL_ADC_REG_SEQ_DISCONT_DISABLE;
+  LL_ADC_REG_InitType.TriggerSource = LL_ADC_REG_TRIG_SOFTWARE;
+  LL_ADC_REG_Init(ADC1, &LL_ADC_REG_InitType);
+  /* ADC共用参数设置 */
+  LL_ADC_SetCommonPathInternalCh(__LL_ADC_COMMON_INSTANCE(ADC1), LL_ADC_PATH_INTERNAL_VREFINT | LL_ADC_PATH_INTERNAL_TEMPSENSOR);
+  /* ADC TempSensor 等待稳定 */
+  wait_loop_index = ((LL_ADC_DELAY_TEMPSENSOR_STAB_US * (SystemCoreClock / (100000 * 2))) / 10);
+  while (wait_loop_index != 0)
+  {
+    wait_loop_index--;
+  }
+  /* 设置转换通道 */
+  // LL_ADC_REG_SetSequencerChannels(ADC1, LL_ADC_CHANNEL_TEMPSENSOR | LL_ADC_CHANNEL_VREFINT | LL_ADC_CHANNEL_1 | LL_ADC_CHANNEL_6);
+  LL_ADC_REG_SetSequencerChAdd(ADC1, LL_ADC_CHANNEL_TEMPSENSOR | LL_ADC_CHANNEL_VREFINT | LL_ADC_CHANNEL_1 | LL_ADC_CHANNEL_6);
+  LL_ADC_EnableIT_EOC(ADC1);
+  NVIC_SetPriority(ADC_COMP_IRQn, 0);
+  NVIC_EnableIRQ(ADC_COMP_IRQn);
+}
+/**
+ * @brief  ADC校准函数.
+ * @param  无
+ * @retval 无
+ */
+static void APP_AdcCalibrate(void)
+{
+  __IO uint32_t wait_loop_index = 0;
+#if (USE_TIMEOUT == 1)
+  uint32_t Timeout = 0; /* Variable used for timeout management */
+#endif                  /* USE_TIMEOUT */
+
+  if (LL_ADC_IsEnabled(ADC1) == 0)
+  {
+    /* 使能校准 */
+    LL_ADC_StartCalibration(ADC1);
+
+#if (USE_TIMEOUT == 1)
+    Timeout = ADC_CALIBRATION_TIMEOUT_MS;
+#endif /* USE_TIMEOUT */
+
+    while (LL_ADC_IsCalibrationOnGoing(ADC1) != 0)
+    {
+#if (USE_TIMEOUT == 1)
+      /* 检测校准是否超时 */
+      if (LL_SYSTICK_IsActiveCounterFlag())
+      {
+        if (Timeout-- == 0)
+        {
+        }
+      }
+#endif /* USE_TIMEOUT */
+    }
+
+    /* ADC校准结束和使能ADC之间的延时最低4个ADC Clock */
+    LL_mDelay(1);
+  }
+}
+
+/**
+ * @brief  ADC使能函数
+ * @param  无
+ * @retval 无
+ */
+static void APP_AdcEnable(void)
+{
+  /* 使能ADC */
+  LL_ADC_Enable(ADC1);
+
+  /* 使能ADC 稳定时间，最低8个ADC Clock */
+  LL_mDelay(1);
 }
 
 /**
@@ -228,9 +362,9 @@ void APP_SlaveIRQCallback(void)
   /* STOPF 标志位置位 */
   else if (LL_I2C_IsActiveFlag_STOP(I2C1) == 1)
   {
-    //失能中断
+    // 失能中断
     LL_I2C_DisableIT_EVT(I2C1);
-    //失能 缓冲区中断
+    // 失能 缓冲区中断
     LL_I2C_DisableIT_BUF(I2C1);
     // 失能 错误中断
     LL_I2C_DisableIT_ERR(I2C1);
@@ -261,25 +395,25 @@ void APP_SlaveIRQCallback(void)
   }
   /* 从机发送 */
 
-    /* TXE标志位置位，BTF标志位未置位 */
-   else if ((LL_I2C_IsActiveFlag_TXE(I2C1) == 1) && (LL_I2C_IsEnabledIT_BUF(I2C1) == 1) && (LL_I2C_IsActiveFlag_BTF(I2C1) == 0))
+  /* TXE标志位置位，BTF标志位未置位 */
+  else if ((LL_I2C_IsActiveFlag_TXE(I2C1) == 1) && (LL_I2C_IsEnabledIT_BUF(I2C1) == 1) && (LL_I2C_IsActiveFlag_BTF(I2C1) == 0))
+  {
+    if (XferCount != 0)
     {
-      if (XferCount != 0)
-      {
-        LL_I2C_TransmitData8(I2C1, aTxBuffer[test]);
-				if(test++ == 0x02)
-					test = 0x00;
-      }
+      LL_I2C_TransmitData8(I2C1, aTxBuffer[test]);
+      if (test++ == 0x02)
+        test = 0x00;
     }
-    /* BTF标志位置位 */
-    else if ((LL_I2C_IsActiveFlag_BTF(I2C1) == 1) && (LL_I2C_IsEnabledIT_EVT(I2C1) == 1))
+  }
+  /* BTF标志位置位 */
+  else if ((LL_I2C_IsActiveFlag_BTF(I2C1) == 1) && (LL_I2C_IsEnabledIT_EVT(I2C1) == 1))
+  {
+    if (XferCount != 0)
     {
-      if (XferCount != 0)
-      {
-        LL_I2C_TransmitData8(I2C1, 0x66);
-        XferCount;
-      }
+      LL_I2C_TransmitData8(I2C1, 0x66);
+      XferCount;
     }
+  }
   /* 从机接收 */
   else
   {
@@ -289,10 +423,10 @@ void APP_SlaveIRQCallback(void)
       if (XferCount != 0U)
       {
         aRxBuffer[rcv_counter++] = LL_I2C_ReceiveData8(I2C1);
-				if(rcv_counter >= 2)
-				{
-					rcv_counter = 0;
-				}
+        if (rcv_counter >= 2)
+        {
+          rcv_counter = 0;
+        }
       }
     }
     /* BTF标志位置位 */

@@ -40,6 +40,7 @@ extern "C" {
 #include "py32f0xx_ll_dma.h"
 #include "py32f0xx_ll_gpio.h"
 #include "py32f0xx_ll_i2c.h"
+#include "py32f0xx_ll_adc.h"
 
 #if defined(USE_FULL_ASSERT)
 #include "py32_assert.h"
@@ -53,6 +54,7 @@ extern "C" {
 void Error_Handler(void);
 void APP_SlaveIRQCallback(void);
 void APP_SlaveIRQCallback_NACK(void);
+void APP_AdcGrpRegularUnitaryConvCompleteCallback(void);
 
 /* Private defines -----------------------------------------------------------*/
 
