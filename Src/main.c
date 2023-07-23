@@ -53,6 +53,7 @@ static void APP_SlaveReceive_IT(uint8_t *pData, uint16_t Size);
 static void APP_AdcConfig(void);
 static void APP_AdcEnable(void);
 static void APP_AdcCalibrate(void);
+static void APP_TimerInit(void);
 
 /**
  * @brief  应用程序入口函数.
@@ -90,8 +91,10 @@ int main(void)
   //  /* 等待从机发送数据完成 */
   //  while (State != I2C_STATE_READY);
   // APP_SlaveReceive_IT((uint8_t *)aRxBuffer, sizeof(aRxBuffer));
+	APP_TimerInit();
   while (1)
   {
+		if(LL_ADC_IsActiveFlag_EOS(ADC1)) LL_ADC_ClearFlag_EOS(ADC1);
     if (aADCRefresh == 0x04)
     {
       LL_ADC_REG_StartConversion(ADC1);
@@ -102,6 +105,29 @@ int main(void)
     //  /* 等待从机接收数据完成 */
     //  APP_SlaveTransmit_IT((uint8_t *)aTxBuffer, sizeof(aTxBuffer));
   }
+}
+
+/**
+  * @brief  TIM配置函数
+  * @param  无
+  * @retval 无
+  */
+void APP_TimerInit()
+{
+  /* 使能TIM1时钟 */
+  LL_APB1_GRP2_EnableClock(LL_APB1_GRP2_PERIPH_TIM1);
+
+  /* 设置TIM1预分频器 */
+  LL_TIM_SetPrescaler(TIM1,2000);
+
+  /* 设置TIM1自动重装载值 */
+  LL_TIM_SetAutoReload(TIM1, 8000);
+
+  /* 设置TIM1更新触发 */
+  LL_TIM_SetTriggerOutput(TIM1,LL_TIM_TRGO_UPDATE);
+
+  /* 使能TIM1 */
+  LL_TIM_EnableCounter(TIM1);
 }
 
 void APP_AdcGrpRegularUnitaryConvCompleteCallback()
@@ -159,7 +185,8 @@ static void APP_AdcConfig(void)
   LL_ADC_REG_InitType.ContinuousMode = LL_ADC_REG_CONV_SINGLE;
   LL_ADC_REG_InitType.Overrun = LL_ADC_REG_OVR_DATA_PRESERVED;
   LL_ADC_REG_InitType.SequencerDiscont = LL_ADC_REG_SEQ_DISCONT_DISABLE;
-  LL_ADC_REG_InitType.TriggerSource = LL_ADC_REG_TRIG_SOFTWARE;
+  //LL_ADC_REG_InitType.TriggerSource = LL_ADC_REG_TRIG_SOFTWARE;
+  LL_ADC_REG_InitType.TriggerSource = LL_ADC_REG_TRIG_EXT_TIM1_TRGO;
   LL_ADC_REG_Init(ADC1, &LL_ADC_REG_InitType);
   /* ADC共用参数设置 */
   LL_ADC_SetCommonPathInternalCh(__LL_ADC_COMMON_INSTANCE(ADC1), LL_ADC_PATH_INTERNAL_VREFINT | LL_ADC_PATH_INTERNAL_TEMPSENSOR);

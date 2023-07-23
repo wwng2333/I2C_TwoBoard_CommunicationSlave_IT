@@ -41,6 +41,7 @@ extern "C" {
 #include "py32f0xx_ll_gpio.h"
 #include "py32f0xx_ll_i2c.h"
 #include "py32f0xx_ll_adc.h"
+#include "py32f0xx_ll_tim.h"
 
 #if defined(USE_FULL_ASSERT)
 #include "py32_assert.h"

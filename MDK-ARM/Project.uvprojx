@@ -459,6 +459,11 @@
               <FileType>1</FileType>
               <FilePath>.\..\..\..\..\..\..\Drivers\PY32F0xx_HAL_Driver\Src\py32f0xx_ll_adc.c</FilePath>
             </File>
+            <File>
+              <FileName>py32f0xx_ll_tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\..\..\Drivers\PY32F0xx_HAL_Driver\Src\py32f0xx_ll_tim.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
