@@ -30,7 +30,7 @@
 #define I2C_STATE_BUSY_TX 1   /* 发送状态 */
 #define I2C_STATE_BUSY_RX 2   /* 接收状态 */
 // ADC
-uint8_t ADC_Result[8] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
+uint8_t ADC_Result[8] = {0};
 uint8_t ADC_Count = 0;
 
 /* Private variables ---------------------------------------------------------*/
@@ -38,7 +38,8 @@ uint8_t aTxBuffer[15] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0
 uint8_t aRxBuffer[100] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 __IO uint8_t counter = 0;
 __IO uint8_t test = 0x00, rcv_counter = 0;
-__IO uint8_t aADCRefresh = 0;
+uint8_t aADCRefresh = 0;
+uint32_t aADCCounter = 0;
 
 uint8_t *pBuffPtr = NULL;
 __IO uint16_t XferCount = 0;
@@ -80,6 +81,7 @@ int main(void)
 
   /* 配置I2C */
   APP_ConfigI2cSlave();
+  SEGGER_RTT_printf(0, "Init ok.\r\n");
 
   LL_ADC_REG_StartConversion(ADC1);
   //  /* 从机发送数据 */
@@ -90,10 +92,10 @@ int main(void)
   // APP_SlaveReceive_IT((uint8_t *)aRxBuffer, sizeof(aRxBuffer));
   while (1)
   {
-    if (aADCRefresh)
+    if (aADCRefresh == 0x04)
     {
       LL_ADC_REG_StartConversion(ADC1);
-      aADCRefresh = 0;
+      aADCRefresh = 0x00;
     }
     //  APP_SlaveReceive_IT((uint8_t *)aRxBuffer, sizeof(aRxBuffer));
     //
@@ -105,22 +107,25 @@ int main(void)
 void APP_AdcGrpRegularUnitaryConvCompleteCallback()
 {
   uint16_t temp = 0;
-	int32_t tmp = 0;
+  int32_t tmp = 0;
   if (ADC_Count == 8)
-	{
-		ADC_Count = 0;
-	}
-	else if(ADC_Count == 4)
-	{
-		tmp = __LL_ADC_CALC_TEMPERATURE(((uint32_t)3000), LL_ADC_REG_ReadConversionData12(ADC1), LL_ADC_RESOLUTION_12B);
-		tmp *= 100;
-		temp = (uint16_t)tmp;
-	} else {
-		temp = LL_ADC_REG_ReadConversionData12(ADC1);
-	}
+  {
+    ADC_Count = 0;
+  }
+  else if (ADC_Count == 4)
+  {
+    tmp = __LL_ADC_CALC_TEMPERATURE(((uint32_t)3000), LL_ADC_REG_ReadConversionData12(ADC1), LL_ADC_RESOLUTION_12B);
+    tmp *= 100;
+    temp = (uint16_t)tmp;
+  }
+  else
+  {
+    temp = LL_ADC_REG_ReadConversionData12(ADC1);
+  }
   ADC_Result[ADC_Count] = temp;
   ADC_Result[ADC_Count + 1] = temp >> 8;
   ADC_Count += 2;
+	aADCCounter++;
 }
 
 /**
@@ -373,7 +378,8 @@ void APP_SlaveIRQCallback(void)
   //   从机地址已经匹配                            中断已使能
   if ((LL_I2C_IsActiveFlag_ADDR(I2C1) == 1) && (LL_I2C_IsEnabledIT_EVT(I2C1) == 1))
   {
-    // 清 地址匹配中断
+    // SEGGER_RTT_printf(0, "I2C IRQCallback:");
+    //  清 地址匹配中断
     LL_I2C_ClearFlag_ADDR(I2C1);
     return;
   }
@@ -420,6 +426,7 @@ void APP_SlaveIRQCallback(void)
     {
       // LL_I2C_TransmitData8(I2C1, 0x68);
       LL_I2C_TransmitData8(I2C1, ADC_Result[test]);
+      // SEGGER_RTT_printf(0, "IIC sent 0x%x\r\n", ADC_Result[test]);
       test++;
     }
   }
@@ -441,8 +448,10 @@ void APP_SlaveIRQCallback(void)
       if (XferCount != 0U)
       {
         aRxBuffer[0] = LL_I2C_ReceiveData8(I2C1);
+        // SEGGER_RTT_printf(0, "IIC recv 0x%x\r\n", aRxBuffer[0]);
         switch (aRxBuffer[0])
         {
+          aADCRefresh++;
         case 0: // BAT, CH1
           test = 0;
           break;
@@ -451,7 +460,7 @@ void APP_SlaveIRQCallback(void)
           break;
         case 2: // Temp, CH11
           test = 4;
-          aADCRefresh = 1;
+          // SEGGER_RTT_printf(0, "Gonna refresh adc\r\n", aRxBuffer[0]);
           break;
         case 3: // Vref, CH12
           test = 6;
