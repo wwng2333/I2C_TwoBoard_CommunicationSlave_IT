@@ -147,9 +147,9 @@ void APP_AdcGrpRegularUnitaryConvCompleteCallback()
   {
     temp = LL_ADC_REG_ReadConversionData12(ADC1);
   }
-  ADC_Result[ADC_Count] = temp;
-  ADC_Result[ADC_Count + 1] = temp >> 8;
-  ADC_Count += 2;  
+  ADC_Result[ADC_Count++] = temp;
+  ADC_Result[ADC_Count++] = temp >> 8;
+  //ADC_Count += 2;  
 	if (ADC_Count == 8)
   {
     ADC_Count = 0;
