@@ -94,12 +94,15 @@ int main(void)
 	APP_TimerInit();
   while (1)
   {
-		if(LL_ADC_IsActiveFlag_EOS(ADC1)) LL_ADC_ClearFlag_EOS(ADC1);
-    if (aADCRefresh == 0x04)
-    {
-      LL_ADC_REG_StartConversion(ADC1);
-      aADCRefresh = 0x00;
-    }
+		//if(LL_ADC_IsActiveFlag_EOS(ADC1)) LL_ADC_ClearFlag_EOS(ADC1);
+		//LL_ADC_REG_StartConversion(ADC1);
+		//LL_mDelay(100);
+		
+//    if (aADCRefresh == 0x04)
+//    {
+//      LL_ADC_REG_StartConversion(ADC1);
+//      aADCRefresh = 0x00;
+//    }
     //  APP_SlaveReceive_IT((uint8_t *)aRxBuffer, sizeof(aRxBuffer));
     //
     //  /* 等待从机接收数据完成 */
@@ -118,10 +121,10 @@ void APP_TimerInit()
   LL_APB1_GRP2_EnableClock(LL_APB1_GRP2_PERIPH_TIM1);
 
   /* 设置TIM1预分频器 */
-  LL_TIM_SetPrescaler(TIM1,2000);
+  LL_TIM_SetPrescaler(TIM1,4000);
 
   /* 设置TIM1自动重装载值 */
-  LL_TIM_SetAutoReload(TIM1, 8000);
+  LL_TIM_SetAutoReload(TIM1, 80000);
 
   /* 设置TIM1更新触发 */
   LL_TIM_SetTriggerOutput(TIM1,LL_TIM_TRGO_UPDATE);
@@ -133,12 +136,10 @@ void APP_TimerInit()
 void APP_AdcGrpRegularUnitaryConvCompleteCallback()
 {
   uint16_t temp = 0;
-  int32_t tmp = 0;
-  if (ADC_Count == 8)
-  {
-    ADC_Count = 0;
-  }
-  else if (ADC_Count == 4)
+  float tmp = 0;
+	LL_TIM_DisableCounter(TIM1);
+
+  if (ADC_Count == 4)
   {
     tmp = __LL_ADC_CALC_TEMPERATURE(((uint32_t)3000), LL_ADC_REG_ReadConversionData12(ADC1), LL_ADC_RESOLUTION_12B);
     tmp *= 100;
@@ -150,8 +151,13 @@ void APP_AdcGrpRegularUnitaryConvCompleteCallback()
   }
   ADC_Result[ADC_Count] = temp;
   ADC_Result[ADC_Count + 1] = temp >> 8;
-  ADC_Count += 2;
+  ADC_Count += 2;  
+	if (ADC_Count == 8)
+  {
+    ADC_Count = 0;
+  }
 	aADCCounter++;
+	LL_TIM_EnableCounter(TIM1);
 }
 
 /**
