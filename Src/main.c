@@ -137,8 +137,6 @@ void APP_AdcGrpRegularUnitaryConvCompleteCallback()
 {
   uint16_t temp = 0;
   float tmp = 0;
-	LL_TIM_DisableCounter(TIM1);
-
   if (ADC_Count == 4)
   {
     tmp = __LL_ADC_CALC_TEMPERATURE(((uint32_t)3000), LL_ADC_REG_ReadConversionData12(ADC1), LL_ADC_RESOLUTION_12B);
@@ -157,7 +155,6 @@ void APP_AdcGrpRegularUnitaryConvCompleteCallback()
     ADC_Count = 0;
   }
 	aADCCounter++;
-	LL_TIM_EnableCounter(TIM1);
 }
 
 /**
