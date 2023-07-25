@@ -139,7 +139,7 @@ void APP_AdcGrpRegularUnitaryConvCompleteCallback()
   float tmp = 0;
   if (ADC_Count == 4)
   {
-    tmp = __LL_ADC_CALC_TEMPERATURE(((uint32_t)3000), LL_ADC_REG_ReadConversionData12(ADC1), LL_ADC_RESOLUTION_12B);
+    tmp = __LL_ADC_CALC_TEMPERATURE(((int32_t)3000), LL_ADC_REG_ReadConversionData12(ADC1), LL_ADC_RESOLUTION_12B);
     tmp *= 100;
     temp = (uint16_t)tmp;
   }
