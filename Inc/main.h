@@ -42,6 +42,8 @@ extern "C" {
 #include "py32f0xx_ll_i2c.h"
 #include "py32f0xx_ll_adc.h"
 #include "py32f0xx_ll_tim.h"
+#include "py32f0xx_ll_crc.h"
+#include "SEGGER_RTT.h"
 
 #if defined(USE_FULL_ASSERT)
 #include "py32_assert.h"

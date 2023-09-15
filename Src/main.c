@@ -22,7 +22,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "py32f002xx_ll_Start_Kit.h"
-#include "SEGGER_RTT.h"
 /* Private define ------------------------------------------------------------*/
 #define I2C_ADDRESS 0xA0      /* 本机\从机地址 */
 #define I2C_SPEEDCLOCK 100000 /* 通讯速度100K */
@@ -30,14 +29,29 @@
 #define I2C_STATE_BUSY_TX 1   /* 发送状态 */
 #define I2C_STATE_BUSY_RX 2   /* 接收状态 */
 // ADC
-uint8_t ADC_Result[8] = {0};
+uint8_t ADC_Result[10] = {0};
 uint8_t ADC_Count = 0;
+uint32_t ADC_CRC = 0;
 
 /* Private variables ---------------------------------------------------------*/
 uint8_t aTxBuffer[15] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff};
 uint8_t aRxBuffer[100] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+const static uint16_t table[256] = { 0x0000, 0xa001, 0xe003, 0x4002, 0x6007, 0xc006, 0x8004, 0x2005, 0xc00e, 0x600f, 0x200d, 0x800c, 0xa009, 0x8, 0x400a, 0xe00b, 0x201d, 0x801c, 0xc01e, 0x601f,
+                                     0x401a, 0xe01b, 0xa019, 0x0018, 0xe013, 0x4012, 0x0010, 0xa011, 0x8014, 0x2015, 0x6017, 0xc016, 0x403a, 0xe03b, 0xa039, 0x38, 0x203d, 0x803c, 0xc03e, 0x603f,
+                                     0x8034, 0x2035, 0x6037, 0xc036, 0xe033, 0x4032, 0x0030, 0xa031, 0x6027, 0xc026, 0x8024, 0x2025, 0x20, 0xa021, 0xe023, 0x4022, 0xa029, 0x28, 0x402a, 0xe02b,
+                                     0xc02e, 0x602f, 0x202d, 0x802c, 0x8074, 0x2075, 0x6077, 0xc076, 0xe073, 0x4072, 0x70, 0xa071, 0x407a, 0xe07b, 0xa079, 0x78, 0x207d, 0x807c, 0xc07e, 0x607f,
+                                     0xa069, 0x0068, 0x406a, 0xe06b, 0xc06e, 0x606f, 0x206d, 0x806c, 0x6067, 0xc066, 0x8064, 0x2065, 0x60, 0xa061, 0xe063, 0x4062, 0xc04e, 0x604f, 0x204d, 0x804c,
+                                     0xa049, 0x0048, 0x404a, 0xe04b, 0x0040, 0xa041, 0xe043, 0x4042, 0x6047, 0xc046, 0x8044, 0x2045, 0xe053, 0x4052, 0x50, 0xa051, 0x8054, 0x2055, 0x6057, 0xc056,
+                                     0x205d, 0x805c, 0xc05e, 0x605f, 0x405a, 0xe05b, 0xa059, 0x58, 0xa0e9, 0xe8, 0x40ea, 0xe0eb, 0xc0ee, 0x60ef, 0x20ed, 0x80ec, 0x60e7, 0xc0e6, 0x80e4, 0x20e5,
+                                     0x00e0, 0xa0e1, 0xe0e3, 0x40e2, 0x80f4, 0x20f5, 0x60f7, 0xc0f6, 0xe0f3, 0x40f2, 0xf0, 0xa0f1, 0x40fa, 0xe0fb, 0xa0f9, 0xf8, 0x20fd, 0x80fc, 0xc0fe, 0x60ff,
+                                     0xe0d3, 0x40d2, 0x00d0, 0xa0d1, 0x80d4, 0x20d5, 0x60d7, 0xc0d6, 0x20dd, 0x80dc, 0xc0de, 0x60df, 0x40da, 0xe0db, 0xa0d9, 0xd8, 0xc0ce, 0x60cf, 0x20cd, 0x80cc, 0xa0c9, 0xc8,
+                                     0x40ca, 0xe0cb, 0x00c0, 0xa0c1, 0xe0c3, 0x40c2, 0x60c7, 0xc0c6, 0x80c4, 0x20c5, 0x209d, 0x809c, 0xc09e, 0x609f, 0x409a, 0xe09b, 0xa099, 0x98, 0xe093, 0x4092, 0x90, 0xa091,
+                                     0x8094, 0x2095, 0x6097, 0xc096, 0x0080, 0xa081, 0xe083, 0x4082, 0x6087, 0xc086, 0x8084, 0x2085, 0xc08e, 0x608f, 0x208d, 0x808c, 0xa089, 0x88, 0x408a, 0xe08b, 0x60a7, 0xc0a6,
+                                     0x80a4, 0x20a5, 0x00a0, 0xa0a1, 0xe0a3, 0x40a2, 0xa0a9, 0xa8, 0x40aa, 0xe0ab, 0xc0ae, 0x60af, 0x20ad, 0x80ac, 0x40ba, 0xe0bb, 0xa0b9, 0xb8, 0x20bd, 0x80bc, 0xc0be, 0x60bf,
+                                     0x80b4, 0x20b5, 0x60b7, 0xc0b6, 0xe0b3, 0x40b2, 0x00b0, 0xa0b1 };
+
 __IO uint8_t counter = 0;
-__IO uint8_t test = 0x00, rcv_counter = 0;
+__IO uint8_t I2CSendPointer = 0x00, rcv_counter = 0;
 uint8_t aADCRefresh = 0;
 uint32_t aADCCounter = 0;
 
@@ -49,7 +63,7 @@ void APP_SystemClockConfig(void);
 static void APP_ConfigI2cSlave(void);
 static void APP_SlaveTransmit_IT(uint8_t *pData, uint16_t Size);
 static void APP_SlaveReceive_IT(uint8_t *pData, uint16_t Size);
-
+static uint32_t APP_CalculateCRC(uint32_t pBuffer[],uint32_t BufferLength);
 static void APP_AdcConfig(void);
 static void APP_AdcEnable(void);
 static void APP_AdcCalibrate(void);
@@ -71,6 +85,9 @@ int main(void)
   /* ADC模块时钟使能 */
   LL_APB1_GRP2_EnableClock(LL_APB1_GRP2_PERIPH_ADC1);
 
+	//使能CRC模块时钟
+	LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_CRC);
+	
   /* ADC校准 */
   APP_AdcCalibrate();
 
@@ -80,6 +97,7 @@ int main(void)
   /* ADC使能 */
   APP_AdcEnable();
 
+	
   /* 配置I2C */
   APP_ConfigI2cSlave();
   SEGGER_RTT_printf(0, "Init ok.\r\n");
@@ -111,6 +129,19 @@ int main(void)
 }
 
 /**
+  * @brief  CRC值计算函数.
+  * @param  CRC数组,CRC数组长度
+  * @retval CRC值
+  */
+uint16_t crc16(uint8_t* data, uint8_t len, uint16_t* table) {
+  uint16_t crc = 0xFFFF;
+  for (uint16_t i = 0; i < len; i++) {
+    crc = (crc << 8) ^ table[((crc >> 8) ^ data[i]) & 0xFF];
+  }
+  return crc;
+}
+
+/**
   * @brief  TIM配置函数
   * @param  无
   * @retval 无
@@ -133,9 +164,16 @@ void APP_TimerInit()
   LL_TIM_EnableCounter(TIM1);
 }
 
+void uint32_to_uint8(uint32_t input, uint8_t output[4]) {
+    for (int i = 0; i < 4; i++) {
+        output[i] = (input >> (i * 8)) & 0xFF;
+    }
+}
+
 void APP_AdcGrpRegularUnitaryConvCompleteCallback()
 {
   uint16_t temp = 0;
+	uint8_t i=0, j=8;
   float tmp = 0;
   if (ADC_Count == 4)
   {
@@ -147,11 +185,15 @@ void APP_AdcGrpRegularUnitaryConvCompleteCallback()
   {
     temp = LL_ADC_REG_ReadConversionData12(ADC1);
   }
-  ADC_Result[ADC_Count++] = temp;
+  ADC_Result[ADC_Count++] = (uint8_t)temp;
   ADC_Result[ADC_Count++] = temp >> 8;
   //ADC_Count += 2;  
 	if (ADC_Count == 8)
   {
+		ADC_CRC = crc16((uint8_t*)ADC_Result, 8, (uint16_t*)table);
+		ADC_Result[8] = ADC_CRC;
+		ADC_Result[9] = ADC_CRC >> 8;
+		SEGGER_RTT_printf(0, "crc=0x%x\r\n", ADC_CRC);
     ADC_Count = 0;
   }
 	aADCCounter++;
@@ -455,9 +497,9 @@ void APP_SlaveIRQCallback(void)
     if (XferCount != 0)
     {
       // LL_I2C_TransmitData8(I2C1, 0x68);
-      LL_I2C_TransmitData8(I2C1, ADC_Result[test]);
-      // SEGGER_RTT_printf(0, "IIC sent 0x%x\r\n", ADC_Result[test]);
-      test++;
+      LL_I2C_TransmitData8(I2C1, ADC_Result[I2CSendPointer]);
+      // SEGGER_RTT_printf(0, "IIC sent 0x%x\r\n", ADC_Result[I2CSendPointer]);
+      I2CSendPointer++;
     }
   }
   /* BTF标志位置位 */
@@ -483,20 +525,23 @@ void APP_SlaveIRQCallback(void)
         {
           aADCRefresh++;
         case 0: // BAT, CH1
-          test = 0;
+          I2CSendPointer = 0;
           break;
         case 1: // Vin, CH6
-          test = 2;
+          I2CSendPointer = 2; 
           break;
         case 2: // Temp, CH11
-          test = 4;
+          I2CSendPointer = 4;
           // SEGGER_RTT_printf(0, "Gonna refresh adc\r\n", aRxBuffer[0]);
           break;
         case 3: // Vref, CH12
-          test = 6;
+          I2CSendPointer = 6;
+          break;
+        case 9: // CRC
+          I2CSendPointer = 8;
           break;
         default:
-          test = 0xFF;
+          I2CSendPointer = 0xFF;
         }
         //        if (rcv_counter >= 2)
         //        {

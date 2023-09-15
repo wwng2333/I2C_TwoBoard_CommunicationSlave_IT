@@ -55,6 +55,7 @@ void NMI_Handler(void)
   */
 void HardFault_Handler(void)
 {
+	SEGGER_RTT_printf(0, "HardFault_Handler.\r\n");
   while (1)
   {
   }
